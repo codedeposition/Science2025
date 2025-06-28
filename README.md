@@ -6,7 +6,7 @@ library(dplyr)
 library(patchwork)
 library(tidydr)
 library(ggplot2)
-library(cowplot)
+library(cowplot) 
 
 # data input
 WT1 <- Read10X(data.dir = "_/WT1/")
