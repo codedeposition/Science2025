@@ -70,7 +70,7 @@ group1=ifelse(str_detect(group,"^F"),"FPR1KO","WT")
 #PCA
 scRNAlist_merge <- NormalizeData(scRNAlist_merge)
 scRNAlist_merge <- FindVariableFeatures(scRNAlist_merge)
-scRNAlist_merge <- ScaleData(scRNAlist_merge, vars.to.regress = c("mt_percent"))#消除线粒体影响
+scRNAlist_merge <- ScaleData(scRNAlist_merge, vars.to.regress = c("mt_percent"))
 scRNAlist_merge <- RunPCA(scRNAlist_merge, verbose=F)
 
 #Integrated with harmony
