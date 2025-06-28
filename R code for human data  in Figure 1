@@ -1,1 +1,960 @@
 
+#sessionInfo()
+#R version 4.4.1 (2024-06-14 ucrt)
+#attached base packages:
+#  [1] stats4    stats     graphics  grDevices utils     datasets  methods   base     
+#other attached packages:
+#  [1] DoubletFinder_2.0.4    clustree_0.5.1         ggraph_2.2.1           stringi_1.8.7          Azimuth_0.5.0          shinyBS_0.61.1        
+#[7] SeuratDisk_0.0.0.9021  BPCells_0.2.0          enrichplot_1.24.4      conflicted_1.2.0       mosaicData_0.20.4      gplots_3.2.0          
+#[13] org.Mm.eg.db_3.19.1    org.Hs.eg.db_3.19.1    AnnotationDbi_1.66.0   IRanges_2.38.1         S4Vectors_0.42.1       Biobase_2.64.0        
+#[19] BiocGenerics_0.50.0    clusterProfiler_4.12.6 msigdbr_24.1.0         future_1.58.0          sctransform_0.4.2      data.table_1.17.6     
+#[25] R.utils_2.13.0         R.oo_1.27.1            R.methodsS3_1.8.2      rio_1.2.3              readxl_1.4.5           cowplot_1.1.3         
+#[31] tidydr_0.0.5           patchwork_1.3.0        lubridate_1.9.4        forcats_1.0.0          stringr_1.5.1          dplyr_1.1.4           
+#[37] purrr_1.0.4            readr_2.1.5            tidyr_1.3.1            tibble_3.3.0           ggplot2_3.5.2          tidyverse_2.0.0       
+#[43] harmony_1.2.3          Rcpp_1.0.14            Seurat_5.3.0           SeuratObject_5.1.0     sp_2.2-0              
+#loaded via a namespace (and not attached):
+#  [1] poweRlaw_1.0.0                    goftest_1.2-3                     DT_0.33                           Biostrings_2.72.1                
+#[5] vctrs_0.6.5                       spatstat.random_3.4-1             digest_0.6.37                     png_0.1-8                        
+#[9] ggrepel_0.9.6                     deldir_2.0-4                      parallelly_1.45.0                 MASS_7.3-65                      
+#[13] Signac_1.14.0                     reshape2_1.4.4                    httpuv_1.6.16                     qvalue_2.36.0                    
+#[17] withr_3.0.2                       ggrastr_1.0.2                     ggfun_0.1.8                       survival_3.8-3                   
+#[21] EnsDb.Hsapiens.v86_2.99.0         memoise_2.0.1                     ggbeeswarm_0.7.2                  gson_0.1.0                       
+#[25] tidytree_0.4.6                    zoo_1.8-14                        gtools_3.9.5                      pbapply_1.7-2                    
+#[29] KEGGREST_1.44.1                   promises_1.3.3                    httr_1.4.7                        restfulr_0.0.15                  
+#[33] rhdf5filters_1.16.0               globals_0.18.0                    fitdistrplus_1.2-2                rhdf5_2.48.0                     
+#[37] rstudioapi_0.17.1                 UCSC.utils_1.0.0                  miniUI_0.1.2                      generics_0.1.4                   
+#[41] DOSE_3.30.4                       babelgene_22.9                    curl_6.3.0                        zlibbioc_1.50.0                  
+#[45] polyclip_1.10-7                   GenomeInfoDbData_1.2.12           SparseArray_1.4.8                 xtable_1.8-4                     
+#[49] S4Arrays_1.4.1                    hms_1.1.3                         GenomicRanges_1.56.1              irlba_2.3.5.1                    
+#[53] colorspace_2.1-1                  hdf5r_1.3.12                      ROCR_1.0-11                       reticulate_1.42.0                
+#[57] spatstat.data_3.1-6               magrittr_2.0.3                    lmtest_0.9-40                     later_1.4.2                      
+#[61] viridis_0.6.5                     ggtree_3.12.0                     lattice_0.22-7                    glmGamPoi_1.16.0                 
+#[65] spatstat.geom_3.4-1               future.apply_1.20.0               scattermore_1.2                   XML_3.99-0.18                    
+#[69] shadowtext_0.1.4                  matrixStats_1.5.0                 RcppAnnoy_0.0.22                  pillar_1.10.2                    
+#[73] nlme_3.1-168                      pwalign_1.0.0                     caTools_1.18.3                    compiler_4.4.1                   
+#[77] RSpectra_0.16-2                   tensor_1.5.1                      SummarizedExperiment_1.34.0       GenomicAlignments_1.40.0         
+#[81] plyr_1.8.9                        crayon_1.5.3                      abind_1.4-8                       BiocIO_1.14.0                    
+#[85] gridGraphics_0.5-1                googledrive_2.1.1                 graphlayouts_1.2.2                bit_4.6.0                        
+#[89] fastmatch_1.1-6                   codetools_0.2-20                  SeuratData_0.2.2.9001             plotly_4.10.4                    
+#[93] mime_0.13                         splines_4.4.1                     fastDummies_1.7.5                 sparseMatrixStats_1.16.0         
+#[97] cellranger_1.1.0                  blob_1.2.4                        seqLogo_1.70.0                    AnnotationFilter_1.28.0          
+#[101] fs_1.6.6                          listenv_0.9.1                     DelayedMatrixStats_1.26.0         ggplotify_0.1.2                  
+#[105] Matrix_1.7-3                      statmod_1.5.0                     tzdb_0.5.0                        tweenr_2.0.3                     
+#[109] pkgconfig_2.0.3                   tools_4.4.1                       cachem_1.1.0                      RhpcBLASctl_0.23-42              
+#[113] RSQLite_2.4.1                     viridisLite_0.4.2                 DBI_1.2.3                         fastmap_1.2.0                    
+#[117] scales_1.4.0                      grid_4.4.1                        ica_1.0-3                         shinydashboard_0.7.3             
+#[121] Rsamtools_2.20.0                  dotCall64_1.2                     RANN_2.6.2                        farver_2.1.2                     
+#[125] tidygraph_1.3.1                   scatterpie_0.2.4                  yaml_2.3.10                       MatrixGenerics_1.16.0            
+#[129] rtracklayer_1.64.0                cli_3.6.5                         lifecycle_1.0.4                   uwot_0.2.3                       
+#[133] presto_1.0.0                      BSgenome.Hsapiens.UCSC.hg38_1.4.5 annotate_1.82.0                   BiocParallel_1.38.0              
+#[137] timechange_0.3.0                  gtable_0.3.6                      rjson_0.2.23                      ggridges_0.5.6                   
+#[141] progressr_0.15.1                  parallel_4.4.1                    ape_5.8-1                         limma_3.60.4                     
+#[145] jsonlite_2.0.0                    RcppHNSW_0.6.0                    TFBSTools_1.42.0                  bitops_1.0-9                     
+#[149] bit64_4.6.0-1                     assertthat_0.2.1                  Rtsne_0.17                        yulab.utils_0.2.0                
+#[153] spatstat.utils_3.1-4              CNEr_1.40.0                       GOSemSim_2.30.2                   shinyjs_2.1.0                    
+#[157] spatstat.univar_3.1-3             lazyeval_0.2.2                    shiny_1.10.0                      htmltools_0.5.8.1                
+#[161] GO.db_3.19.1                      rappdirs_0.3.3                    ensembldb_2.28.1                  glue_1.8.0                       
+#[165] TFMPvalue_0.0.9                   googlesheets4_1.1.1               spam_2.11-1                       httr2_1.1.2                      
+#[169] XVector_0.44.0                    RCurl_1.98-1.17                   treeio_1.28.0                     BSgenome_1.72.0                  
+#[173] gridExtra_2.3                     JASPAR2020_0.99.10                igraph_2.1.4                      R6_2.6.1                         
+#[177] RcppRoll_0.3.1                    labeling_0.4.3                    GenomicFeatures_1.56.0            cluster_2.1.8.1                  
+#[181] Rhdf5lib_1.26.0                   gargle_1.5.2                      aplot_0.2.6                       GenomeInfoDb_1.40.1              
+#[185] DirichletMultinomial_1.46.0       DelayedArray_0.30.1               tidyselect_1.2.1                  vipor_0.4.7                      
+#[189] ProtGenerics_1.36.0               ggforce_0.5.0                     KernSmooth_2.23-26                htmlwidgets_1.6.4                
+#[193] fgsea_1.30.0                      RColorBrewer_1.1-3                rlang_1.1.6                       spatstat.sparse_3.1-0            
+#[197] spatstat.explore_3.4-3            beeswarm_0.4.0                   
+
+
+library(Seurat)
+library(harmony)
+library(tidyverse)
+library(dplyr)
+library(patchwork)
+library(tidydr)
+library(ggplot2)
+library(cowplot)
+library(readxl)
+library(rio)
+library(R.utils)
+library(data.table)
+library(BPCells)
+library(SeuratObject)
+library(SeuratDisk)
+library(Azimuth)
+
+####1 Data preprocessing######
+####001 MS1 data preprocessing GSE180759 (case ID MS1-5)######
+setwd("----/ms1/")
+ms1<-as.sparse(read.csv("GSE180759_expression_matrix.csv", row.names = 1,header=T,
+              comment.char = "#",  check.names=F ))
+ms1annotation<-read.table("GSE180759_annotation.txt", row.names = 1,header=T)
+ms1<-t(ms1)
+ms1<-as.data.frame(ms1)
+ms1$ID<-rownames(ms1)
+ms1annotation$ID<-rownames(ms1annotation)
+ms1annotation<-subset(ms1annotation,select=c(ID,pathology))
+ms1<-merge(ms1, ms1annotation, by="ID")
+write.csv(ms1,file="ms1.csv")
+ms1<-read.csv(file="ms1.csv", header=T, row.names=1, sep=",", comment.char = "#",check.names=F)
+
+#chract_ms1  chronic_active_MS_lesion_edge
+chract_ms1<-subset(ms1,subset=pathology=="chronic_active_MS_lesion_edge",select=-pathology)
+row.names(chract_ms1)<-chract_ms1$ID
+chract_ms1<-subset(chract_ms1, select = -ID)
+chract_ms11<-t(chract_ms1)#t()
+chract_ms1<-chract_ms11
+colnames(chract_ms1)<- paste('chract_ms1', colnames(chract_ms1), sep = '_')
+write.csv(chract_ms1,file="chractms1.csv")
+
+
+#chrinact_ms1  chronic_inactive_MS_lesion_edge
+chrinact_ms1<-subset(ms1,subset=pathology=="chronic_inactive_MS_lesion_edge", select=-pathology)
+row.names(chrinact_ms1)<-chrinact_ms1$ID
+chrinact_ms1<-subset(chrinact_ms1, select = -ID)
+chrinact_ms1<-t(as.matrix(chrinact_ms1))
+colnames(chrinact_ms1)<- paste('chrinact_ms1', colnames(chrinact_ms1), sep = '_')
+write.csv(chrinact_ms1,file="chrinactms1.csv")
+
+#conwm_ms1, control_white_matter
+conwm_ms1<-subset(ms1,subset=pathology=="control_white_matter", select=-pathology)
+row.names(conwm_ms1)<-conwm_ms1$ID
+conwm_ms1<-subset(conwm_ms1, select = -ID)
+conwm_ms1<-t(conwm_ms1)
+conwm_ms1[1:3,1:3]
+colnames(conwm_ms1)<- paste('conwm_ms1', colnames(conwm_ms1), sep = '_')
+write.csv(conwm_ms1,file="conwmms1.csv")
+
+#lc_ms1 MS_lesion_core
+lc_ms1<-subset(ms1,subset=pathology=="MS_lesion_core", select=-pathology)
+row.names(lc_ms1)<-lc_ms1$ID
+lc_ms1<-subset(lc_ms1, select = -ID)
+lc_ms1<-t(lc_ms1)
+colnames(lc_ms1)<- paste('lc_ms1', colnames(lc_ms1), sep = '_')
+write.csv(lc_ms1,file="lcms1.csv")
+
+#periwm_ms1 MS_periplaque_white_matter
+periwm_ms1<-subset(ms1,subset=pathology=="MS_periplaque_white_matter", select=-pathology)
+row.names(periwm_ms1)<-periwm_ms1$ID
+periwm_ms1<-subset(periwm_ms1, select = -ID)
+periwm_ms1<-t(periwm_ms1)
+colnames(periwm_ms1)<- paste('periwm_ms1', colnames(periwm_ms1), sep = '_')
+write.csv(periwm_ms1,file="periwmms1.csv")
+
+#creat seurat objects
+dir<-"---/ms1"
+samples <- list.files(dir) 
+scRNAlist = lapply(samples, function(pro){ 
+  print(pro)  
+  ct=fread(file.path(dir, pro), data.table = F)
+  ct[1:4,1:4]
+  rownames(ct) = ct[,1]
+  ct = ct[,-1]
+  a<-gsub('.csv', '', pro)
+  ms1 = CreateSeuratObject(counts = ct,
+                           project =a,
+                           min.cells = 5,
+                           min.features = 300)
+  return(ms1) 
+})
+
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT-")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m]  
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)  
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+
+
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+(violin_before[[1]]|violin_before[[2]])/(violin_before[[3]]|violin_before[[4]])/(violin_before[[5]]|violin_before[[5]])## 
+violin_before[[2]]
+
+summary(violin_before)
+
+
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 3000 & 
+                mt_percent < 10 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+mergedms1 <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+save(mergedms1, file="20240730mergedms1.Rdata")
+
+
+
+####002 MS2 data preprocessing GSE118257 (case ID: MS121/122/176/242) ######
+setwd("----/ms2/") 
+ms2annotation<-read.table("MSCtr_snRNA_FinalAnnotationTable.txt", row.names = 1, header=T)
+ms2<-read.table("MSCtr_snRNA_ExpressionMatrix_R.txt", row.names = 1, header=T)
+ms2<-as.data.frame(t(ms2))
+ms2$ID<-rownames(ms2)
+ms2annotation$ID<-rownames(ms2annotation)
+ms2annotation<-ms2annotation[c("Sample","ID")]
+ms2annotation$ID<-gsub(':', '.', ms2annotation$ID) 
+ms2<-merge(ms2annotation, ms2,by="ID")
+rownames(ms2)<-ms2$ID
+
+#chract_ms2  chronic_active_MS_lesion_edge
+chract_ms2<-subset(ms2, subset=Sample=="chract",select=c(-ID,-Sample))
+chract_ms21<-t(chract_ms2)
+chract_ms2<-chract_ms21
+colnames(chract_ms2)<- paste('chract_ms2', colnames(chract_ms2), sep = '_')
+write.csv(chract_ms2,file="chractms2.csv")
+
+chrinact_ms2<-subset(ms2, subset=Sample=="chrinact",select=c(-ID,-Sample))
+chrinact_ms21<-t(chrinact_ms2)
+chrinact_ms2<-chrinact_ms21
+colnames(chrinact_ms2)<- paste('chrinact_ms2', colnames(chrinact_ms2), sep = '_')
+write.csv(chrinact_ms2,file="chrinactms2.csv")
+
+conwm_ms2<-subset(ms2, subset=Sample=="conwm",select=c(-ID,-Sample))
+conwm_ms21<-t(conwm_ms2)
+conwm_ms2<-conwm_ms21
+colnames(conwm_ms2)<- paste('conwm_ms2', colnames(conwm_ms2), sep = '_')
+write.csv(conwm_ms2,file="conwmms2.csv")
+
+periwm_ms2<-subset(ms2, subset=Sample=="periwm",select=c(-ID,-Sample))
+periwm_ms21<-t(periwm_ms2)
+periwm_ms2<-periwm_ms21
+colnames(periwm_ms2)<- paste('periwm_ms2', colnames(periwm_ms2), sep = '_')
+write.csv(periwm_ms2,file="periwmms2.csv")
+
+active_ms2<-subset(ms2, subset=Sample=="active",select=c(-ID,-Sample))
+active_ms21<-t(active_ms2)#t()
+active_ms2<-active_ms21
+colnames(active_ms2)<- paste('active_ms2', colnames(active_ms2), sep = '_')
+write.csv(active_ms2,file="activems2.csv")
+
+remyeles_ms2<-subset(ms2, subset=Sample=="remyeles",select=c(-ID,-Sample))
+remyeles_ms21<-t(remyeles_ms2)
+remyeles_ms2<-remyeles_ms21
+colnames(remyeles_ms2)<- paste('remyeles_ms2', colnames(remyeles_ms2), sep = '_')
+write.csv(remyeles_ms2,file="remyelesms2.csv")
+
+
+dir<-"---/ms2" #The folder address of the data
+samples <- list.files(dir) 
+samples
+
+scRNAlist = lapply(samples, function(pro){ 
+  print(pro) 
+  ct=fread(file.path(dir, pro), data.table = F)
+  ct[1:4,1:4]
+  rownames(ct) = ct[,1]
+  ct = ct[,-1]
+  a<-gsub('.csv', '', pro)
+  ms2 = CreateSeuratObject(counts = ct,
+                           project =a,
+                           min.cells = 5,
+                           min.features = 300)
+  return(ms2) 
+})
+
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m] 
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)   
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+
+
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+
+(violin_before[[1]]|violin_before[[2]])/(violin_before[[3]]|violin_before[[4]])/(violin_before[[5]]|violin_before[[6]])## 
+summary(violin_before)
+
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 4000 & 
+                mt_percent < 10 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+
+mergedms2 <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+save(mergedms2, file="20240730mergedms2.Rdata")
+
+
+
+####003 MS3 data preprocessing GSE179590(case ID??S1,S5,S10)###### 
+dir_name <- list.files('C:/brain/ms3/')
+scRNAlist <- list()
+for(i in 1:length(dir_name)){
+  counts <- Read10X(data.dir = 
+                      paste("C:/brain/ms3/", dir_name[i], sep = ""))
+  colnames(counts)<-paste(dir_name[i],colnames(counts),sep="-")
+     scRNAlist[[i]] <- CreateSeuratObject(counts, project =dir_name[i],min.cells = 3, min.features = 300)
+}
+
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT-")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m] 
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)   
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+
+
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+(violin_before[[1]]|violin_before[[2]]|violin_before[[3]])/(violin_before[[4]]|violin_before[[5]]|violin_before[[6]])/(violin_before[[7]]|violin_before[[8]]|violin_before[[8]])##
+summary(violin_before)
+
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 7000 & 
+                mt_percent < 5 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+mergedms3 <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+save(mergedms3, file="20240730mergedms3.Rdata")
+
+
+####004 AD 10X data preprocessing from GSE183068 (Gan sample ID: 2,8,14,16,18,24,38); disease controls in data analysis#### 
+
+dir_name <- list.files('C:/brain/AD/') #The folder address of the data
+scRNAlist <- list()
+for(i in 1:length(dir_name)){
+  counts <- Read10X(data.dir = 
+                      paste("C:/brain/AD/", dir_name[i], sep = ""))
+  colnames(counts)<-paste(dir_name[i],colnames(counts),sep="-")
+  scRNAlist[[i]] <- CreateSeuratObject(counts, project =dir_name[i],min.cells = 3, min.features = 300)
+}
+
+scRNAlist
+
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT-")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m] 
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)   
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+
+
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+(violin_before[[1]]|violin_before[[2]]|violin_before[[3]])/(violin_before[[4]]|violin_before[[5]]|violin_before[[5]])#
+summary(violin_before)
+
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 7000 & 
+                mt_percent < 5 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+mergedAD <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+save(mergedAD, file="20240730mergedAD.Rdata")
+
+
+####005 PD data preprocessing from GSE157783 (sample ID:IPD1-5, C1-6); disease controls in data analysis#### 
+
+
+setwd('---/PD') 
+
+pdcell<-read_tsv(file="IPDCO_hg_midbrain_cell.tsv")
+pdgene<-read_tsv(file="IPDCO_hg_midbrain_genes.tsv")
+pdmatrix<-read_tsv(file="IPDCO_hg_midbrain_UMI.tsv")
+pdmatrix$row<-c(1:26737)
+pdgene<-subset(pdgene, select=c(row, gene))
+pdmatrix<-merge(pdgene, pdmatrix, by="row")
+pdmatrix$row<-NULL
+
+library(stringi)
+pdmatrix$gene=stri_sub(pdmatrix$gene,1,15)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+keytypes(org.Hs.eg.db)
+Ensembl_ID <- pdmatrix$gene
+
+gene_symbol <- bitr(Ensembl_ID, fromType="ENSEMBL", toType=c("SYMBOL", "ENTREZID"), OrgDb="org.Hs.eg.db")
+head(gene_symbol)
+
+gene_symbol$ENTREZID<-NULL
+pdmatrix=data.frame(gene_symbol,pdmatrix[match(gene_symbol$ENSEMBL, pdmatrix$gene),])
+pdmatrix$gene<-NULL
+pdmatrix$ENSEMBL<-NULL
+
+pdmatrix<-t(pdmatrix)
+write.csv(pdmatrix,file="20240730pdmatrixfull.csv")
+setwd("---/PD")
+
+pdmatrix<-read.csv(file="20240730pdmatrixfull.csv", header=T, row.names = 1, sep=",")
+pdmatrix<-read.csv(file="20240730pdmatrixfull.csv")
+pdmatrix1<-pdmatrix
+pdmatrix[1:2,1:2]
+colnames(pdmatrix)<-pdmatrix[1,1:20572]
+rownames(pdmatrix)<-pdmatrix$row
+pdmatrix<-pdmatrix[-1,]
+pdcell<-read_tsv(file="IPDCO_hg_midbrain_cell.tsv")
+pdcell$SYMBOL<-pdcell$barcode
+pdcell$cell_ontology<-NULL
+pdcell$barcode<-NULL
+pdcell$SYMBOL[1:2]
+pdmatrix$SYMBOL[1:2]
+pdcell$SYMBOL<-gsub("-", ".", pdcell$SYMBOL)
+pdmatrix<-as.data.frame(pdmatrix)
+pdmatrix21<-merge(pdcell,pdmatrix,by="SYMBOL")
+pdmatrix22=data.frame(pdcell,pdmatrix[match(pdcell$SYMBOL, pdmatrix$SYMBOL),])
+
+PD1<-subset(pdmatrix21, subset=patient=="PD1", select =(-patient))
+rownames(PD1)<-paste("PD1", PD1$SYMBOL, sep="_")
+PD1<-t(subset(PD1, select =(-SYMBOL)))
+PD1[1:3,1:4]
+
+PD2<-subset(pdmatrix21, subset=patient=="PD2", select =(-patient))
+rownames(PD2)<-paste("PD2", PD2$SYMBOL, sep="_")
+PD2<-t(subset(PD2, select =(-SYMBOL)))
+
+PD3<-subset(pdmatrix21, subset=patient=="PD3", select =(-patient))
+rownames(PD3)<-paste("PD3", PD3$SYMBOL, sep="_")
+PD3<-t(subset(PD3, select =(-SYMBOL)))
+
+
+PD4<-subset(pdmatrix21, subset=patient=="PD4", select =(-patient))
+rownames(PD4)<-paste("PD4", PD4$SYMBOL, sep="_")
+PD4<-t(subset(PD4, select =(-SYMBOL)))
+
+
+PD5<-subset(pdmatrix21, subset=patient=="PD5", select =(-patient))
+rownames(PD5)<-paste("PD5", PD5$SYMBOL, sep="_")
+PD5<-t(subset(PD5, select =(-SYMBOL)))
+
+C1<-subset(pdmatrix21, subset=patient=="C1", select =(-patient))
+rownames(C1)<-paste("C1", C1$SYMBOL, sep="_")
+C1<-t(subset(C1, select =(-SYMBOL)))
+
+
+C2<-subset(pdmatrix21, subset=patient=="C2", select =(-patient))
+rownames(C2)<-paste("C2", C2$SYMBOL, sep="_")
+C2<-t(subset(C2, select =(-SYMBOL)))
+
+C3<-subset(pdmatrix21, subset=patient=="C3", select =(-patient))
+rownames(C3)<-paste("C3", C3$SYMBOL, sep="_")
+C3<-t(subset(C3, select =(-SYMBOL)))
+
+C4<-subset(pdmatrix21, subset=patient=="C4", select =(-patient))
+rownames(C4)<-paste("C4", C4$SYMBOL, sep="_")
+C4<-t(subset(C4, select =(-SYMBOL)))
+
+C5<-subset(pdmatrix21, subset=patient=="C5", select =(-patient))
+rownames(C5)<-paste("C5", C5$SYMBOL, sep="_")
+C5<-t(subset(C5, select =(-SYMBOL)))
+
+C6<-subset(pdmatrix21, subset=patient=="C6", select =(-patient))
+rownames(C6)<-paste("C6", C6$SYMBOL, sep="_")
+C6<-t(subset(C6, select =(-SYMBOL)))
+
+write.csv(PD1, file="20240730PD1.csv")
+write.csv(PD2, file="20240730PD2.csv")
+write.csv(PD3, file="20240730PD3.csv")
+write.csv(PD4, file="20240730PD4.csv")
+write.csv(PD5, file="20240730PD5.csv")
+write.csv(C1, file="20240730C1.csv")
+write.csv(C2, file="20240730C2.csv")
+write.csv(C3, file="20240730C3.csv")
+write.csv(C4, file="20240730C4.csv")
+write.csv(C5, file="20240730C5.csv")
+write.csv(C6, file="20240730C6.csv")
+
+dir<-"C:/brain/PD"
+samples <- list.files(dir) 
+samples
+
+scRNAlist = lapply(samples, function(pro){ 
+  print(pro) 
+  ct=fread(file.path(dir, pro), data.table = F)
+  ct[1:4,1:4]
+  colnames(ct) = ct[1,]
+  rownames(ct)=ct[,1]
+  ct = ct[,-1]
+  ct = ct[-1,]
+  numeric_ct <- ct
+  char_cols <- sapply(ct, is.character)
+  numeric_ct[char_cols] <- lapply(numeric_ct[char_cols], as.numeric)
+  str(numeric_ct)
+  ct<-numeric_ct
+  a<-gsub('.csv', '', pro)
+  PD = CreateSeuratObject(counts = ct,
+                           project =a,
+                           min.cells = 5,
+                           min.features = 300)
+  return(PD) 
+})
+
+
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m] 
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)   
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+
+
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+
+(violin_before[[1]]|violin_before[[2]])/(violin_before[[3]]|violin_before[[4]])/(violin_before[[5]]|violin_before[[5]])
+summary(violin_before)
+
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x,
+              subset = nFeature_RNA > 300 & nFeature_RNA < 6000 & 
+                mt_percent < 5 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+
+mergedpd <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+save(mergedpd, file="20240730mergedpd.Rdata")
+
+####2??Totol data processing (normalization, PCA, intergity, delete doublet cells, cell subset anotation and DEG analysis######
+
+load("20240730mergedAD.Rdata")
+load("20240730mergedms1.Rdata")
+load("20240730mergedms2.Rdata")
+load("20240730mergedms3.Rdata")
+load("20240730mergedpd.Rdata")
+
+scRNAlist <- list(mergedAD, mergedms1,mergedms2,mergedms3,mergedpd)
+
+total <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+
+
+####2.1??rename sample IDs in metadata
+total$sampleID1<-total$orig.ident
+total$sampleID1<-factor(
+  total$sampleID1, 
+  levels=c("active","chract","chrinact","conwm",
+           "gan14","gan16","gan18","gan24","gan8","lc","PD1",
+           "PD2","PD3","PD4","PD5","periwm","remyeles","rrms","spms"),
+  labels=c("active","chract","chrinact","conwm",
+           "AD","AD","AD","AD","AD","lc","PD",
+           "PD","PD","PD","PD","periwm","remyeles","rrms","spms1")) 
+
+total$sampleID2<-factor(
+  total$sampleID1,
+  levels=c("active","chract","chrinact","conwm",
+           "AD","lc","PD", "periwm","remyeles","rrms","spms1"),
+  labels=c("active","SPMS","SPMS","HC",
+           "AD","SPMS","PD", "SPMS","SPMS","RRMS","SPMS1"))
+
+scRNAlist_merge<-total
+rm(total)
+scRNAlist_merge <- JoinLayers(scRNAlist_merge)
+  
+
+Idents(scRNAlist_merge)=scRNAlist_merge$orig.ident
+plot1<-VlnPlot(scRNAlist_merge,
+        features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+        split.by = "orig.ident",
+        layer = "counts",
+        pt.size = 0.01, 
+        ncol = 4)
+plot1
+
+scRNAlist_merge <- NormalizeData(scRNAlist_merge)
+scRNAlist_merge <- FindVariableFeatures(scRNAlist_merge)
+scRNAlist_merge <- ScaleData(scRNAlist_merge, vars.to.regress = c("mt_percent"))
+scRNAlist_merge <- RunPCA(scRNAlist_merge, verbose=F)
+scRNAlist_merge[["RNA"]] <- split(scRNAlist_merge[["RNA"]], f = scRNAlist_merge$orig.ident)
+
+
+###Integrated with harmony
+scRNAlist_merge <- IntegrateLayers(object = scRNAlist_merge, 
+                                 method = HarmonyIntegration, 
+                                 orig.reduction = "pca", 
+                                 new.reduction = "harmony",
+                                 verbose = FALSE)
+
+scRNAlist_merge[["RNA"]] <- JoinLayers(scRNAlist_merge[["RNA"]])
+ElbowPlot(scRNAlist_merge, ndims = 50)
+scRNAlist_merge <- FindNeighbors(scRNAlist_merge, dims = 1:30)
+scRNAlist_merge <- FindClusters(scRNAlist_merge, resolution = seq(from = 0.1, to = 1.0, by = 0.1))
+scRNAlist_merge <- RunTSNE(scRNAlist_merge, dims = 1:30, reduction = "harmony")
+scRNAlist_merge <- RunUMAP(scRNAlist_merge, dims = 1:30, reduction = "harmony")
+DimPlot(scRNAlist_merge, label = T, label.size = 3, reduction = "umap") + NoLegend()
+
+
+#CellCycleScoring
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+scRNAlist_merge[["RNA"]] <- JoinLayers(scRNAlist_merge[["RNA"]])
+scRNAlist_merge <- CellCycleScoring(scRNAlist_merge, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+DimPlot(scRNAlist_merge, group.by = 'Phase') 
+library(clustree)
+clustree(scRNAlist_merge)
+DimPlot(scRNAlist_merge, reduction = "umap", group.by = "orig.ident")+
+  ggtitle("Harmony") #AD PD samples are as references for evaluating the results of integrated assay with harmony
+DimPlot(scRNAlist_merge, reduction = "umap", group.by = "sampleID2")+
+  ggtitle("Harmony") #AD PD samples are as references for evaluating the results of integrated assay with harmony
+
+#remove none necessary MS groups (active lesion in SPMS; SPMS1 missing lesion type)
+Idents(scRNAlist_merge)<-scRNAlist_merge$sampleID2
+scRNAlist_merge<-subset(scRNAlist_merge, idents = c("SPMS","HC","AD","PD","RRMS"))
+
+###2.1.remove Doublet cells####
+library(DoubletFinder)
+Idents(scRNAlist_merge)<-"RNA_snn_res.0.1"
+scRNAlist_merge$sampleID3<-scRNAlist_merge$sampleID2
+Idents(scRNAlist_merge)<-scRNAlist_merge$sampleID3
+sweep.res.list <- DoubletFinder::paramSweep(scRNAlist_merge, PCs = 1:50, sct = FALSE)
+sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
+sweep.stats
+
+bcmvn <- find.pK(sweep.stats)
+mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
+dim(scRNAlist_merge) 
+nExp_poi <- round(0.075*ncol(scRNAlist_merge)) 
+homotypic.prop <- modelHomotypic(scRNAlist_merge$seurat_clusters)
+nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
+scRNAlist_merge <- doubletFinder(scRNAlist_merge, PCs = 1:30, pN = 0.25, pK = mpK, nExp = nExp_poi.adj, reuse.pANN = FALSE, sct = T)
+paste("DF.classifications_", "0.25_", mpK, "_", nExp_poi.adj, sep="")
+scRNAlist_merge$DF.classifications_0.25_0.28_9466
+DimPlot(scRNAlist_merge, pt.size = 1, label = TRUE, label.size = 5, reduction = "umap", group.by = "DF.classifications_0.25_0.28_9466",shuffle = T)
+DimPlot(scRNAlist_merge, pt.size = 1, label = TRUE, label.size = 5, reduction = "umap", split.by = "DF.classifications_0.25_0.28_9466",shuffle = T)
+VlnPlot(scRNAlist_merge,group.by = "DF.classifications_0.25_0.28_9466",
+        features = c("nFeature_RNA", "nCount_RNA", "mt_percent","hb_percent","ribo_percent"), 
+        pt.size = 0, 
+        ncol = 4)
+dev.off()
+
+mainmarkers <- c("EPCAM","PECAM1","PTPRC","CLDN5","COL1A2")
+DotPlot(scRNAlist_merge, features = mainmarkers,group.by = "DF.classifications_0.25_0.28_9466") + 
+  coord_flip()
+
+
+Epi_all_filter <- subset(scRNAlist_merge, DF.classifications_0.25_0.28_9466 == "Singlet" )
+Idents(Epi_all_filter) <- "seurat_clusters"
+DimPlot(Epi_all_filter, pt.size = 1, label = TRUE, label.size = 5, reduction = "umap",shuffle = T)
+scRNAlist_merge<-Epi_all_filter
+DimPlot(scRNAlist_merge,reduction = "tsne",label = TRUE,pt.size = 0.5, raster=FALSE)
+rm(Epi_all_filter)
+
+####2.2 regression of cellcycescoring genes####
+s.genes<-cc.genes$s.genes
+g2m.genes<-cc.genes$g2m.genes
+scRNAlist_merge <- CellCycleScoring(scRNAlist_merge, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+scRNAlist_merge$CC.Difference<-scRNAlist_merge$S.Score-scRNAlist_merge$G2M.Score
+View(scRNAlist_merge)
+scRNAlist_merge <- ScaleData(scRNAlist_merge, vars.to.regress = "CC.Difference",features = rownames(scRNAlist_merge))
+
+
+  Idents(scRNAlist_merge)<-scRNAlist_merge$sampleID2
+  table(scRNAlist_merge$sampleID2)
+  scRNAlist_merge<-subset(scRNAlist_merge,idents=c("chract","chrinact","conwm","AD","lc","PD", "periwm","rrms"))
+  
+  scRNAlist_merge$sampleID1<-Idents(scRNAlist_merge)
+  scRNAlist_merge$sampleID2<-factor(scRNAlist_merge$sampleID1,
+                                    levels=c("conwm","chract","chrinact","periwm","lc","rrms","AD","PD"),
+                                    labels=c("Control","SPMS","SPMS","SPMS","SPMS","RRMS","AD","PD"))
+  
+  scRNAlist_merge$sampleID3<-factor(scRNAlist_merge$sampleID1,
+                                    levels=c("conwm","chract","chrinact","periwm","lc","rrms","AD","PD"),
+                                    labels=c("Control","MS","MS","MS","MS","MS","AD","PD"))
+  scRNAlist_merge$sampleID4<-factor(scRNAlist_merge$sampleID1,
+                                    levels=c("conwm","chract","chrinact","periwm","lc","rrms","AD","PD"),
+                                    labels=c("Control","SPMS_active LE","SPMS_inactive LE","SPMS_periwm","SPMS_LC","RRMS","AD","PD"))
+
+  ####2.3 cell subsets annotation ####
+  #marker genes for cell subsets annotation 
+  FeaturePlot(scRNAlist_merge,  pt.size = 2, reduction = "umap", features = c("PTPRC", "CD3E",  "ITGAM", "TMEM119",  "ADGRE1","ITGAX","MAP2","GFAP","S100B","AQP4","OLIG2","SOX10","O4","CLDN5","DEX","SOX2","VWF", "PDGFRA","GCPG4"),cols = c("gray", "red"))
+  Idents(scRNAlist_merge)<-scRNAlist_merge$sampleID2
+  DimPlot(scRNAlist_merge,reduction = "umap",label = F, pt.size = 1.2)
+  scRNAlist_merge$RNA_snn_res.0.2m<-factor(scRNAlist_merge$RNA_snn_res.0.2, labels = c(0,1,2,3,4,5,6,7,8,9,10,
+                                                                                       11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26))
+  Idents(scRNAlist_merge)<-scRNAlist_merge$RNA_snn_res.0.2m
+  table(scRNAlist_merge$RNA_snn_res.0.2m)
+  
+  plot1<-DimPlot(scRNAlist_merge,reduction = "umap",label = T, pt.size = 1.2)
+  plot1
+  plot2<-FeaturePlot(scRNAlist_merge,  pt.size = 2, reduction = "umap", features = c("PTPRC", "CD3E",  "ITGAM", "TMEM119",  "ADGRE1","ITGAX","MAP2","GFAP","S100B","AQP4","OLIG2","SOX10","O4","CLDN5","DEX","SOX2","NES","VWF"),cols = c("gray", "red"))
+  plot2
+  
+  scRNAlist_merge$celltype<-factor(scRNAlist_merge$RNA_snn_res.0.2m,
+  levels = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26),
+  labels = c("Oligo","Mic/Mac","OPC","Neu","Oligo","Neu","Neu","Mic/Mac","Endo","Ast","Endo","Neu","Oligo","Ast","Endo","OPC","Ast","Lym","Ast","Oligo","Oligo","Ast","Ast","Oligo","Neu","Neu","Oligo"))
+  table(scRNAlist_merge$celltype)
+  
+  scRNAlist_merge$celltype1<-factor(scRNAlist_merge$celltype,levels=c("Oligo","Mic/Mac","OPC","Neu","Endo","Ast","Lym"),
+                                    labels=c("Oligo","MicMac","OPC","Neu","Endo","Ast","Lym"))
+  
+  
+  Idents(scRNAlist_merge)<-scRNAlist_merge$celltype
+  DimPlot(scRNAlist_merge,reduction = "umap",label = T, pt.size = 1.2)
+Idents(scRNAlist_merge)<-scRNAlist_merge$sampleID4
+scRNAlist_merge<-subset(scRNAlist_merge, idents=c("SPMS_inactive LE","SPMS_active LE","SPMS_periwm","SPMS_LC","RRMS","AD"))
+scRNAlist_merge1<-subset(scRNAlist_merge, idents=c("SPMS_inactive LE","SPMS_active LE","SPMS_periwm","SPMS_LC","RRMS"))
+
+###Figure S2C marker gene DotPlot for total cells####
+markers <- c("PTPRC","ITGAM","TMEM119","ITGAX","CD3E","RBFOX3","AQP4","MOG","PDGFRA","CLDN5","VWF")
+Idents(scRNAlist_merge1)<-scRNAlist_merge1$celltype1
+DotPlot(scRNAlist_merge1, features = markers) + coord_flip() + 
+  theme_bw() +  
+  theme(panel.grid = element_blank(), axis.text.x = element_text(hjust = 1, vjust = 0.5)) +  
+  labs(x = NULL, y = NULL) + guides(size = guide_legend(order = 3)) +  
+  theme(axis.text.x = element_text(angle = 90)) +  
+  scale_color_gradientn(values = seq(0, 1, 0.2), colours = c('#330066', '#336699', '#66CC66', '#FFCC33')) 
+#### Figure 1C umapDimPlot####
+custom_colors <- c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "#af7aa1", "#ff9f40","#1E90FF","#4e79a7","#644839", "#4e79a7","#9c755f")
+Idents(scRNAlist_merge1)<-scRNAlist_merge1$sampleID5
+Idents(scRNAlist_merge1)<-scRNAlist_merge1$celltype1
+p4=DimPlot(scRNAlist_merge1, reduction = "umap", 
+           label = F, repel = F, shuffle = T ,pt.size = 0.2,label.size = 5) + 
+  theme_dr(xlength = 0.2, 
+           ylength = 0.2,
+           arrow = arrow(length = unit(0.1, "inches"),type = "closed")) +
+  theme(panel.grid = element_blank(),
+        axis.title = element_text(face = 3,hjust = 0.03)) +
+  scale_color_manual(values = alpha(custom_colors,0.3)) + 
+  scale_fill_manual(values = alpha(custom_colors,0.3))
+p4
+####Figure 1D cell proportation ggplot#### 
+proptablem1<-prop.table(table(scRNAlist_merge1$celltype,scRNAlist_merge1$sampleID5))
+proptablem1
+cell.prop<-as.data.frame(prop.table(table(scRNAlist_merge1$celltype,scRNAlist_merge1$sampleID5)))
+cell.prop
+write.table(cell.prop,"cell.prop.xls",sep="\t")
+str(cell.prop)
+#colname(cell.prop)<-c("cluster","group","proportion")
+library(ggplot2)
+ggplot(cell.prop,aes(x=Var2,y=Freq,fill=Var1))+
+  
+  geom_bar(stat="identity",position="fill")+
+  
+  scale_fill_manual(values=c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "#af7aa1", "#ff9f40","#1E90FF","#644839", "#4e79a7","#9c755f"))+
+  
+  ggtitle("")+
+  
+  theme_bw()+
+  
+  theme(axis.ticks.length=unit(0.5,'cm'))+
+  
+  guides(fill=guide_legend(title=NULL))
+####Figure 1F FPR1 FeaturePlot ####
+FeaturePlot(scRNAlist_merge1, features ='FPR1',cols = c("gray", "red") )
+####Figure 1E  Mic/Mac subset: FPR1 VlnPlot####
+scRNAlist_merge$sampleID6<-factor(scRNAlist_merge$sampleID5, levels=c("SPMS_periwm", "SPMS_active LE", "SPMS_inactive LE", "SPMS_LC", "RRMS", "AD"),labels=c("Control", "SPMS_active LE", "SPMS_inactive LE", "SPMS_LC", "RRMS", "AD"))
+scRNAlist_merge$sampleID6<-factor(scRNAlist_merge$sampleID6, levels=c("Control", "SPMS_inactive LE", "SPMS_active LE", "SPMS_LC", "RRMS", "AD"))
+Idents(scRNAlist_merge)<-scRNAlist_merge$celltype
+scRNAlist_mergemicmac<-subset(scRNAlist_merge,ident="Mic/Mac")
+Idents(scRNAlist_mergemicmac)<-scRNAlist_mergemicmac$sampleID6
+VlnPlot(scRNAlist_mergemicmac,features = c("FPR1"),cols=c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "lightgray", "#ff9f40","#4e79a7","#644839", "#4e79a7","#9c755f"))
+rm(scRNAlist_mergemicmac)
+####Reclustering of Mic/Mac subset####
+Idents(scRNAlist_merge)<-scRNAlist_merge$celltype1
+DimPlot(scRNAlist_merge, reduction = "umap", label=T)
+subMicMac<-subset(scRNAlist_merge, idents = "MicMac")
+Idents(subMicMac)<-subMicMac$sampleID5
+table(Idents(subMicMac))
+subMicMac<-subMicMac
+Idents(subMicMac)<-subMicMac$celltype1
+scRNAlist_merge<-subMicMac
+table(scRNAlist_merge$sampleID4)
+p1<-DimPlot(object = scRNAlist_merge, reduction = "umap",pt.size = 0.5,label=T)
+p1
+Idents(scRNAlist_merge)<-scRNAlist_merge$celltype
+pbmc <-scRNAlist_merge
+rm(scRNAlist_merge)
+table(pbmc$sampleID4)
+pbmc$sampleID10<-factor(pbmc$sampleID4, levels=c("Control","SPMS_active LE","SPMS_inactive LE","SPMS_periwm","SPMS_LC","RRMS","AD","PD"), labels = c("SPMS_active LE","SPMS_active LE","SPMS_inactive LE","SPMS_periwm","SPMS_LC","RRMS","AD","AD"))
+table(pbmc$sampleID10)
+Idents(pbmc)<-pbmc$sampleID10
+pbmc<-SCTransform(pbmc, vars.to.regress = c("CC.Difference","mt_percent"),do.correct.umi = TRUE, ncells = 5000, variable.features.n = 2000, verbose = FALSE)
+pbmc <- RunPCA(pbmc, verbose=F)
+DimPlot(pbmc, group.by = 'Phase')
+Idents(pbmc)
+Layers(pbmc[["SCT"]])
+table(pbmc$sampleID4)
+pbmc[["SCT"]] <- split(pbmc[["SCT"]], f = pbmc$sampleID4)
+pbmc <- IntegrateLayers(object = pbmc, 
+                        method = HarmonyIntegration, 
+                        orig.reduction = "pca", 
+                        new.reduction = "harmony",
+                        verbose = FALSE)
+pbmc[["SCT"]] <- JoinLayers(pbmc[["SCT"]])
+ElbowPlot(pbmc, ndims = 50)
+pbmc <- FindNeighbors(pbmc, dims = 1:30)
+pbmc <- FindClusters(pbmc, resolution = seq(from = 0.1, to = 2.0, by = 0.1))
+pbmc <- RunUMAP(object = pbmc, reduction = "harmony", dims = 1:30)
+pbmc <- RunTSNE(object = pbmc, reduction = "harmony", dims = 1:30)
+library(clustree)
+Idents(pbmc)<-pbmc@meta.data$seurat_clusters
+clustree(pbmc)
+DefaultAssay(pbmc) <- "SCT"
+Idents(pbmc)<-pbmc$SCT_snn_res.2
+pbmc$sampleID7<-pbmc$SCT_snn_res.2
+table(pbmc$sampleID7)
+pbmc$sampleID7<-factor(pbmc$sampleID7, levels = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34), labels = c(
+  "Mic2", "Mic2", "BAM1", "Mic2", "DC1", "Monocyte",
+  "Mic2", "Mic3", "DC1", "Mic2", "Mic2", 
+  "DC1", "Monocyte","Mic2", "Mic2", "Monocyte", 
+  "Mic3", "DC1","Mic1", "DC2", "BAM2", 
+  "Mic2", "DC3", "Mic3", "Monocyte", "Monocyte",
+  "Monocyte", "DC1","Monocyte", "Mic2", "Monocyte", 
+  "Mic2", "DC1", "DC1", "DC2"))
+pbmc$sampleID7<-factor(pbmc$sampleID7, levels=c("Mic1","Mic2","Mic3","Monocyte","BAM2","BAM1","DC1","DC2","DC3"),labels=c("Mic1","Mic2","Mic3","Mac1","Mac2","Mac3","DC1","DC2","DC3"))
+Idents(pbmc)<-pbmc$sampleID7
+DimPlot(object = pbmc, reduction = "umap",pt.size = 0.5,label=T)
+DefaultAssay(pbmc) <- "RNA"
+VlnPlot(pbmc,features = c("FPR1"))
+FeaturePlot(pbmc,  pt.size = 0.5, reduction = "umap", features = c("ITGAM", "ITGAX","TMEM119", "FPR1"),cols = c("gray", "red"),raster=FALSE)
+FeaturePlot(pbmc,  pt.size = 0.5, reduction = "umap", features = c("ITGAM", "ITGAX","TMEM119", "P2RY12","CX3CR1","APOE","TREM2","LYVE1","CD14","VCAN","S100A8","CD74","CD44","CCR2","AXL","CLEC9A","HLA-DR","CD83","CD68","HLA-DRA","HLA-DRB1","HLA-DRB2","HLA-DRB3"),cols = c("gray", "red"),raster=FALSE)
+####Figure S2D Marker genes DotPlot of myeloid cells####
+#mic/mye
+markers <- c("PTPRC","ITGAM","P2RY12", "CX3CR1","IL1B","FPR1","CTSL","S100A8","CD44","CD68", "MRC1","SIGLEC1","LYVE1","CD163","F13A1","CD83","BAG3","HLA-DRA","HLA-DRB1")
+DotPlot(pbmc, features = markers) + coord_flip() +  
+  theme_bw() +  #
+  theme(panel.grid = element_blank(), axis.text.x = element_text(hjust = 1, vjust = 0.5)) +  
+  labs(x = NULL, y = NULL) + guides(size = guide_legend(order = 3)) +  
+  theme(axis.text.x = element_text(angle = 90)) +  
+  scale_color_gradientn(values = seq(0, 1, 0.2), colours = c('#330066', '#336699', '#66CC66', '#FFCC33'))  
+Idents(pbmc)
+Mac2.markers <- FindMarkers(pbmc, ident.1 = c("Mac2"),  only.pos = TRUE,min.pct = 0.25,logfc.threshold = 0.25)
+head(Mac2.markers, n = 500)
+table(pbmc$SCT_snn_res.1)
+
+####Figure 1G mic/mye cells #####
+custom_colors <- c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "#af7aa1", "#ff9f40","#1E90FF","#4e79a7","skyblue","#644839", "#4e79a7","#9c755f")
+
+Idents(pbmc)<-pbmc$sampleID7
+
+p4=DimPlot(pbmc, reduction = "umap", #group.by = "Celltype",
+           label = F, repel = F, shuffle = T ,pt.size = 0.5,label.size = 5) + 
+  theme_dr(xlength = 0.2, #
+           ylength = 0.2,
+           arrow = arrow(length = unit(0.1, "inches"),type = "closed")) +
+  theme(panel.grid = element_blank(),
+        axis.title = element_text(face = 3,hjust = 0.03)) +
+  # 
+  scale_color_manual(values = alpha(custom_colors,0.3)) +  # 
+  # NoLegend() + # 
+  scale_fill_manual(values = alpha(custom_colors,0.3))#
+p4
+####Figure 1H FPR1 in mic/mye cells #####
+VlnPlot(pbmc,features = c("FPR1"),pt.size = 1.5,cols=c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "#af7aa1", "#ff9f40","#1E90FF","#4e79a7","skyblue","#644839", "#4e79a7","#9c755f"))
+
+####Figure 1I: SPMS chronic active LE: FPR1pos Mic/Mac??FPR1neg Mic/Mac GO enrichment ####
+library(msigdbr)
+library(clusterProfiler)
+library(Seurat)
+library(gplots)
+library(ggplot2)
+library(mosaicData)
+library(tidyverse)
+library(conflicted)
+library(dplyr)
+library(clusterProfiler)
+library(enrichplot)
+library(org.Hs.eg.db)
+Idents(pbmc)<-pbmc$sampleID7
+table(pbmc$sampleID7)
+subscRNAlist_merge<-subset(pbmc,idents=c("Mic1","Mic2","Mic3","Mac1","Mac2","Mac3"))
+table(subscRNAlist_merge$sampleID10)
+Idents(subscRNAlist_merge)<-subscRNAlist_merge$sampleID10
+subscRNAlist_merge<-subset(subscRNAlist_merge,idents="SPMS_active LE")
+Idents(subscRNAlist_merge)<-subscRNAlist_merge$sampleID7
+highCells=colnames(subset(x = scRNAlist_merge, subset = FPR1 > 0, slot = 'counts'))
+dim(scRNAlist_merge@assays$RNA$counts)
+scRNAlist_merge@assays$RNA$counts[1:3,1:2]
+colnames(scRNAlist_merge@assays$RNA$counts)
+highORlow=ifelse(colnames(scRNAlist_merge) %in% highCells,'Positive','Negative')
+table(highORlow)
+scRNAlist_merge@meta.data$highORlow=highORlow
+MicMacFPR1positivemarker <- FindMarkers(subscRNAlist_merge, ident.1 = "Positive", ident.2 ="Negative",
+                                        group.by = 'highORlow', subset.ident = c("Mic1","Mic2","Mic3","Mac1","Mac2","Mac3"),
+                                        only.pos = F,min.pct = 0.15,logfc.threshold = 0.25)%>%mutate( gene = rownames(.) ) 
+conflicts_prefer(dplyr::filter())
+Tcells_degs<-MicMacFPR1positivemarker
+Tcells_degs_fil = Tcells_degs %>% 
+  dplyr::filter( pct.1 > 0.1 & p_val_adj < 0.05&p_val_adj > 0)
+dplyr::filter( abs( avg_log2FC ) > 0.5 ) 
+ids=bitr(Tcells_degs_fil$gene,'SYMBOL','ENTREZID','org.Hs.eg.db')
+Tcells_degs_fil=merge(Tcells_degs_fil,ids,by.x='gene',by.y='SYMBOL')
+head(Tcells_degs_fil)
+Tcells_degs_fil <- Tcells_degs_fil[order(Tcells_degs_fil$avg_log2FC,decreasing = T),]
+Tcells_degs_list <- as.numeric(Tcells_degs_fil$avg_log2FC)
+names(Tcells_degs_list) <- Tcells_degs_fil$ENTREZID
+head(Tcells_degs_list)
+cluster3_de <- names(Tcells_degs_list)[abs(Tcells_degs_list) > 0.1]
+head(cluster3_de)
+cluster3_ego <- enrichGO(cluster3_de, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE)
+head(cluster3_ego)
+class(cluster3_ego)
+write.csv(cluster3_ego@result,"XXX.csv") # select pathways to be shown,  rename the file as secleted.csv
+pathway <- read.csv("secleted.csv",header = T)
+colnames(pathway)
+pathway$GeneRatio1<-pathway$Count/111
+pathway<-pathway[1:11,1:14]
+pp <- ggplot(data=pathway,mapping = aes(x=GeneRatio1,y=Description))
+pp
+###Figure 1I
+pp+geom_point(mapping = aes(size=Count,color=pvalue))+
+  scale_color_gradient(low="#e15759",high="#af7aa1")+
+  labs(title = "GO enrichment",x="Rich factor",y="Pathway",color="-log10(PValue)",size="zScore")+
+  theme_bw()+
+  theme_minimal()+
+  theme(panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"),
+        axis.ticks=element_blank(), 
+        panel.grid=element_blank())
+
