@@ -34,7 +34,7 @@ for(i in 1:length(scRNAlist0)){ sc <- scRNAlist0[[i]]
   scRNAlist[[i]] <- sc
   rm(sc)
 }
-
+   
 for(i in 1:length(scRNAlist)){
   sc <- scRNAlist[[i]]
   sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^mt-")
