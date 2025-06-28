@@ -1,5 +1,4 @@
-
-# R coode for mouse CNS data
+# R code for mouse CNS data Figure 3
 library(Seurat)
 library(harmony)
 library(tidyverse)
