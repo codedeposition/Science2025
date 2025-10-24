@@ -8,7 +8,7 @@ library(tidydr)
 library(ggplot2)
 library(cowplot)
 library(cowplot) 
-
+     
 # data input
 WT1 <- Read10X(data.dir = "_/WT1/")
 colnames(WT1) <- paste('WT1', colnames(WT1), sep = '_')
