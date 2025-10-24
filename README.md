@@ -128,8 +128,8 @@ scRNA_harmony <- ScaleData(scRNA_harmony, vars.to.regress = c("S.Score", "G2M.Sc
 merged<-scRNA_harmony
 merged.markers <- FindAllMarkers(merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 
-
-
+plot1<-FeaturePlot(merged, reduction = "umap", features = c("Ptprc", "Cd3e", "Cd4", "Cd8a", "Klrb1c", "Cd19", "Mzb1", "Itgam",   "Tmem119", "Adgre1", "Ly6g","S100a9"),cols = c("gray", "red"))
+plot1
 Idents(merged)<-"RNA_snn_res.4"
 new.cluster.ids <- c("Mac2", "Mac2","Mac2","Mac1","Mac1","Mac2","Mac2","Mac1",
                      "Mac1","Mac2","Mac2","Mac2","Mac2","Mac1","Mac1","Mac2","Mac2","Mac2","Mac1","Mac1",
