@@ -6,6 +6,7 @@ library(dplyr)
 library(patchwork)
 library(tidydr)
 library(ggplot2)
+library(cowplot)
 library(cowplot) 
 
 # data input
@@ -30,11 +31,11 @@ scRNAlist0 <- list(WT1,WT2,WT3,FPR1KO1,FPR1KO2,FPR1KO3)
 scRNAlist <- list()
 # sreamline data processing
 for(i in 1:length(scRNAlist0)){ sc <- scRNAlist0[[i]]
-  sc <- CreateSeuratObject(sc,  min.cells = 3, min.features = 300)
-  scRNAlist[[i]] <- sc
-  rm(sc)
+sc <- CreateSeuratObject(sc,  min.cells = 3, min.features = 300)
+scRNAlist[[i]] <- sc
+rm(sc)
 }
-   
+
 for(i in 1:length(scRNAlist)){
   sc <- scRNAlist[[i]]
   sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^mt-")
@@ -127,16 +128,30 @@ scRNA_harmony <- ScaleData(scRNA_harmony, vars.to.regress = c("S.Score", "G2M.Sc
 merged<-scRNA_harmony
 merged.markers <- FindAllMarkers(merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 
- Idents(merged)<-"RNA_snn_res.1"
-  new.cluster.ids <- c("MicFPR1low", 
-                       "MacFPR1high", "MacFPR1low", "MicFPR1low", "MacFPR1low", "DCs", 
-                       "CD4 T cell", "CD8 T cell", "DCs", "CD4 T cell", "MicFPR1high",
-                       "MacFPR1high", "MacFPR1high", "CD4 T cell", "MicFPR1high", "MicFPR1high",
-                       "NK cell", "MacFPR1low", "MicFPR1low", "MicFPR1high", "MicFPR1low",
-                       "CD8 T cell", "CD3 T cell", "B cell", "Plasma cell", "CD3 T cell")
-  names(new.cluster.ids) <- levels(merged)
-  merged <- RenameIdents(merged, new.cluster.ids)
-  merged$celltype<-merged@active.ident
+
+
+Idents(merged)<-"RNA_snn_res.4"
+new.cluster.ids <- c("Mac2", "Mac2","Mac2","Mac1","Mac1","Mac2","Mac2","Mac1",
+                     "Mac1","Mac2","Mac2","Mac2","Mac2","Mac1","Mac1","Mac2","Mac2","Mac2","Mac1","Mac1",
+                     "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", "Mic2", 
+                     "Mic1", "Mic1", "Mic1", "Mic1", "Mic1", "Mic1", "Mic1", "Mic1", 
+                     "CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell","CD4 T cell",
+                     "CD8 T cell", "CD8 T cell","CD8 T cell",
+                     "DCs","DCs","DCs","DCs",
+                     "Neutrophil","Neutrophil", "B cell", "Plasma cell", "NK cell", "NK cell")
+names(new.cluster.ids) <- levels(merged)
+merged <- RenameIdents(merged, new.cluster.ids)
+merged$celltype3<-merged@active.ident
+merged$celltype3<-factor(merged$celltype3,levels=c("Mic1","Mic2","Mac1","Mac2","DCs","Neutrophil","CD4 T cell","CD8 T cell","B cell","Plasma cell", "NK cell"))
+
+Idents(merged)<-merged$celltype3
+
+merged@meta.data$sample_type <- paste(merged@meta.data$group, merged@active.ident, sep = "_")
+
+
+#DimPlot for total samples
+DimPlot(merged,reduction = "umap")
+
 
 # cell proportion and dot plot
 cell.prop<-as.data.frame(prop.table(table(Idents(merged), merged$group)))
@@ -155,6 +170,10 @@ ggplot(cell.prop,aes(x=Var2,y=Freq,fill=Var1))+
   
   guides(fill=guide_legend(title=NULL))
 
+#VlnPlot for FPR1 expression
+plot1<-VlnPlot(merged, features = c("Fpr1"),cols=c('#B6C6E0', '#E7ACA4'), split.by = "group",pt.size =0.1)
+plot1 
+
 # DEGs analysis 
 highCells=colnames(subset(x = merged, subset = Fpr1 > 0, slot = 'counts'))
 highORlow=ifelse(colnames(merged) %in% highCells,'Positive','Negative')
@@ -171,8 +190,8 @@ merged@meta.data$sample_type <- paste(merged@meta.data$group, merged@active.iden
 marker<-FindMarkers(merged, group.by="sample_type",ident.1 = "WT_MicFPR1high", ident.2 = "FPR1KO_MicFPR1high",only.pos = FALSE, logfc.threshold = 0.25, min.pct = 0.1)%>%mutate( gene = rownames(.) ) 
 
 macrophageFPR1highmarker1 <- FindMarkers(merged, ident.1 = "Positive", ident.2 ="Negative",
-                                        group.by = 'highORlow', subset.ident = "MacFPR1high",
-                                        only.pos = F,min.pct = 0.15,logfc.threshold = 0.25)%>%mutate( gene = rownames(.) ) 
+                                         group.by = 'highORlow', subset.ident = "MacFPR1high",
+                                         only.pos = F,min.pct = 0.15,logfc.threshold = 0.25)%>%mutate( gene = rownames(.) ) 
 
 merged@meta.data$sample_type <- paste(merged@meta.data$group, merged@active.ident, sep = "_")
 marker<-FindMarkers(merged, group.by="sample_type",ident.1 = "WT_MacFPR1high", ident.2 = "FPR1KO_MacFPR1high",only.pos = FALSE, logfc.threshold = 0.25, min.pct = 0.15)%>%mutate( gene = rownames(.) ) 
@@ -195,29 +214,29 @@ Tcells_degs<-object # DEGs between groups e.g. MicrogliaFPR1highmarker1
 Tcells_degs_fil = Tcells_degs %>% 
   dplyr::filter( pct.1 > 0.1 & p_val_adj < 0.05&p_val_adj > 0) %>%
   dplyr::filter( abs( avg_log2FC ) > 0.6 ) 
- Tcells_degs_fil$gene <- rownames(Tcells_degs_fil)
-  ids=bitr(Tcells_degs_fil$gene,'SYMBOL','ENTREZID','org.Mm.eg.db')
-  Tcells_degs_fil=merge(Tcells_degs_fil,ids,by.x='gene',by.y='SYMBOL')
-  head(Tcells_degs_fil)
+Tcells_degs_fil$gene <- rownames(Tcells_degs_fil)
+ids=bitr(Tcells_degs_fil$gene,'SYMBOL','ENTREZID','org.Mm.eg.db')
+Tcells_degs_fil=merge(Tcells_degs_fil,ids,by.x='gene',by.y='SYMBOL')
+head(Tcells_degs_fil)
 
 Tcells_degs_fil <- Tcells_degs_fil[order(Tcells_degs_fil$avg_log2FC,decreasing = T),]
-  Tcells_degs_list <- as.numeric(Tcells_degs_fil$avg_log2FC)
-  names(Tcells_degs_list) <- Tcells_degs_fil$ENTREZID
-  head(Tcells_degs_list)
-  cluster3_de <- names(Tcells_degs_list)[abs(Tcells_degs_list) > 0.6]
-  head(cluster3_de)
-  cluster3_ego <- enrichGO(cluster3_de, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE)
-  head(cluster3_ego)
-  dotplot(cluster3_ego, showCategory=30, title="XXX")
-  
-cluster3_ekg <- enrichKEGG(gene= cluster3_de, organism = "mmu", pvalueCutoff =1)
-  head(cluster3_ekg)
-  group=str_split(cluster3_ekg@result$Description,'- Mus',simplify = T)[,1]
-  cluster3_ekg@result$Description
-  cluster3_ekg@result$Description<-group
-  dotplot(cluster3_ekg, showCategory=10,title="XXX")
+Tcells_degs_list <- as.numeric(Tcells_degs_fil$avg_log2FC)
+names(Tcells_degs_list) <- Tcells_degs_fil$ENTREZID
+head(Tcells_degs_list)
+cluster3_de <- names(Tcells_degs_list)[abs(Tcells_degs_list) > 0.6]
+head(cluster3_de)
+cluster3_ego <- enrichGO(cluster3_de, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE)
+head(cluster3_ego)
+dotplot(cluster3_ego, showCategory=30, title="XXX")
 
-  # cellchat
+cluster3_ekg <- enrichKEGG(gene= cluster3_de, organism = "mmu", pvalueCutoff =1)
+head(cluster3_ekg)
+group=str_split(cluster3_ekg@result$Description,'- Mus',simplify = T)[,1]
+cluster3_ekg@result$Description
+cluster3_ekg@result$Description<-group
+dotplot(cluster3_ekg, showCategory=10,title="XXX")
+
+# cellchat analysis
 library(Seurat)
 library(RColorBrewer)
 library(dplyr)
@@ -225,85 +244,71 @@ library(magrittr)
 library(CellChat)
 library(patchwork)
 library(tidydr)
+
+
+Idents(merged)<-merged$celltype3
 merged@meta.data$sample_type <- paste(merged@meta.data$group, merged@active.ident, sep = "_")
-merged.list <- SplitObject(merged, split.by = "group")
-merged.list <- lapply(X = merged.list, FUN = function(x) {
-  x <- NormalizeData(x)
-  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
-})
-features <- SelectIntegrationFeatures(object.list = merged.list, nfeatures = 2000)
-merged.list <- lapply(X = merged.list, FUN = function(x) {
-  x <- ScaleData(x, features = features, verbose = T)
-  x <- RunPCA(x, features = features, verbose = T)
-})
-options(future.globals.maxSize = 8000 * 1024^2)
+table(merged@meta.data$group)
+#WT FPR1KO 
+#13078   7487 
+DimPlot(merged,reduction = "umap",label=T)
+immune.combined<-merged
+rm(merged)
 
-immune.anchors <- FindIntegrationAnchors(object.list = merged.list, anchor.features = features, 
-                                         reduction = "rpca", k.anchor = 20)
-immune.combined <- IntegrateData(anchorset = immune.anchors)
+#set cellchat file for WT
 
-DefaultAssay(immune.combined) <- "integrated"
-immune.combined <- ScaleData(immune.combined, verbose = FALSE)
-immune.combined <- RunPCA(immune.combined, npcs = 30, verbose = FALSE)
-immune.combined <- RunUMAP(immune.combined, reduction = "pca", dims = 1:30)
-immune.combined <- FindNeighbors(immune.combined, reduction = "pca", dims = 1:30)
-immune.combined <- FindClusters(immune.combined, resolution = seq(from = 0.1, to = 1.0, by = 0.1))
-DefaultAssay(immune.combined) <- "RNA"
-Idents(immune.combined) <- "RNA_snn_res.0.6"
-DimPlot(immune.combined, reduction = "tsne" ,label=T, pt.size = 1.5 )
-p1 <- DimPlot(immune.combined, reduction = "tsne", group.by = "group")
-p2 <- DimPlot(immune.combined, reduction = "umap", group.by = "celltype",label = TRUE,repel = TRUE)
-plot1<-FeaturePlot(immune.combined, reduction = "tsne", features = c("Ptprc", "Cd3e", "Cd4", "Cd8a", "Cd19", "Klrb1c", "Itgam",   "Tmem119", "Cx3cr1", "Adgre1", "Ly6g", "Itgax"),cols = c("gray", "red"))
-plot1
+WT.object <- subset(immune.combined,group=="WT")
+WT.data.input <- GetAssayData(WT.object, assay = "RNA", slot = "data")
+WT.meta <- WT.object@meta.data[,c("celltype3", "group")]
+WT.meta$celltype3 %<>% as.vector(.)
+WT.cellchat <- createCellChat(object = WT.data.input)
+WT.cellchat <- addMeta(WT.cellchat, meta = WT.meta)
+WT.cellchat <- setIdent(WT.cellchat, ident.use = "celltype3")
+levels(WT.cellchat@idents)
+groupSize <- as.numeric(table(WT.cellchat@idents))
+groupSize
+WT.cellchat@DB <- CellChatDB.mouse 
+showDatabaseCategory(WT.cellchat@DB)
+dplyr::glimpse(CellChatDB.mouse$interaction) 
+CellChatDB.use <- subsetDB(CellChatDB.mouse, search = "Secreted Signaling") 
+WT.cellchat@DB <- CellChatDB.use 
+WT.cellchat <- subsetData(WT.cellchat, features = NULL)
+future::plan("multisession", workers = 10)
+WT.cellchat <- identifyOverExpressedGenes(WT.cellchat)
+WT.cellchat <- identifyOverExpressedInteractions(WT.cellchat)
+WT.cellchat <- projectData(WT.cellchat, PPI.mouse)
+WT.cellchat <- computeCommunProb(WT.cellchat,raw.use=F,population.size =F)
+WT.cellchat <- filterCommunication(WT.cellchat, min.cells = 10)
+WT.cellchat <- computeCommunProbPathway(WT.cellchat)
+WT.cellchat <- aggregateNet(WT.cellchat)
+WT.cellchat <- netAnalysis_computeCentrality(WT.cellchat, slot.name = "netP") 
 
-plot1<-FeaturePlot(immune.combined, reduction = "tsne", features = c("Fpr1", "Cd3e", "Cd4", "Cd8a", "Cd19", "Klrb1c", "Itgam",   "Tmem119", "Cx3cr1", "Adgre1", "Ly6g", "Itgax"),cols = c("gray", "red"))
-plot1
-new.cluster.ids <- c( "MacFPR1high", "DCs",   "MicFPR1high", "MicFPR1high", "CD4 T cell",   
-                      "MacFPR1high", "CD8 T cell",  "B cell",  "NK cell",    "MacFPR1low",  
-                      "MacFPR1high", "MicFPR1low",  "MicFPR1high", "DCs",    "MacFPR1low",  
-                      "CD4 T cell",   "MicFPR1low",   "CD8 T cell", "CD4 T cell",   "CD3 T cell",   
-                      "Plasma cell",   "MicFPR1low")
-names(new.cluster.ids) <- levels(immune.combined)
-immune.combined <- RenameIdents(immune.combined, new.cluster.ids)
+#set cellchat file for FPR1KO
 
-immune.combined$celltype<-NULL
-immune.combined$celltype<-immune.combined@active.ident
-table(immune.combined$celltype)
-Idents(immune.combined)
-Idents(immune.combined)<-factor(Idents(immune.combined),levels=c("MicFPR1high","MicFPR1low", "MacFPR1high","MacFPR1low","CD3 T cell","CD4 T cell", "CD8 T cell","DCs","NK cell","B cell", "Plasma cell"))
-
-immune.combined$celltype<-factor(immune.combined$celltype, levels=c("MicFPR1high","MicFPR1low", "MacFPR1high","MacFPR1low","CD3 T cell","CD4 T cell", "CD8 T cell","DCs","NK cell","B cell", "Plasma cell"))
-Idents(immune.combined)<-"celltype"
-table(immune.combined@active.ident)
-
-FPR1KO.object <- subset(immune.combined,group=="FPR1KO") # same as following code to set WT.cellchat
+FPR1KO.object <- subset(immune.combined,group=="FPR1KO")
 FPR1KO.data.input <- GetAssayData(FPR1KO.object, assay = "RNA", slot = "data")
-FPR1KO.meta = FPR1KO.object@meta.data[,c("celltype", "group")] 
-FPR1KO.meta$cellType %<>% as.vector(.)
+FPR1KO.meta = FPR1KO.object@meta.data[,c("celltype3", "group")] 
+FPR1KO.meta$cellType3 %<>% as.vector(.)
 FPR1KO.cellchat <- createCellChat(object = FPR1KO.data.input)
 FPR1KO.cellchat <- addMeta(FPR1KO.cellchat, meta = FPR1KO.meta)
-FPR1KO.cellchat <- setIdent(FPR1KO.cellchat, ident.use = "celltype")
+FPR1KO.cellchat <- setIdent(FPR1KO.cellchat, ident.use = "celltype3")
+groupSizeFPR1KO <- as.numeric(table(FPR1KO.cellchat@idents)) 
+groupSizeFPR1KO
 FPR1KO.cellchat@DB <- CellChatDB.mouse 
 FPR1KO.cellchat <- subsetData(FPR1KO.cellchat) 
 future::plan("multisession", workers = 10) 
 FPR1KO.cellchat <- identifyOverExpressedGenes(FPR1KO.cellchat)
 FPR1KO.cellchat <- identifyOverExpressedInteractions(FPR1KO.cellchat)
 FPR1KO.cellchat <- projectData(FPR1KO.cellchat, PPI.mouse)  
-FPR1KO.cellchat <- computeCommunProb(FPR1KO.cellchat, raw.use=F)
+FPR1KO.cellchat <- computeCommunProb(FPR1KO.cellchat, raw.use=F, population.size = F)
 FPR1KO.cellchat <- filterCommunication(FPR1KO.cellchat, min.cells = 10)
 FPR1KO.cellchat <- computeCommunProbPathway(FPR1KO.cellchat)
 FPR1KO.cellchat <- aggregateNet(FPR1KO.cellchat)
-FPR1KO.cellchat <- netAnalysis_computeCentrality(FPR1KO.cellchat, slot.name = "netP") # the slot 'netP' means the inferred intercellular communication network of signaling pathways
-group2.net <- subsetCommunication(FPR1KO.cellchat)
-save (FPR1KO.cellchat, file="FPR1KO.cellchat.rds")
-WT.cellchat <- readRDS("WT.cellchat.rds")
-FPR1KO.cellchat <- readRDS("FPR1KO.cellchat.rds")
-
+FPR1KO.cellchat <- netAnalysis_computeCentrality(FPR1KO.cellchat, slot.name = "netP")
 object.list <- list(FPR1KO = FPR1KO.cellchat, WT = WT.cellchat)
 cellchat <- mergeCellChat(object.list, add.names = names(object.list))
-par(mfrow = c(1,2), xpd=TRUE)
-netVisual_diffInteraction(cellchat, weight.scale = T)
-netVisual_diffInteraction(cellchat, weight.scale = T, measure = "weight")
+
+par(mfrow = c(1,1))
+h1 <- netVisual_heatmap(cellchat, measure = "weight")
+h1
 dev.off()
-
-
