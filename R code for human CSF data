@@ -1,0 +1,267 @@
+library(Seurat)
+library(harmony)
+library(tidyverse)
+library(dplyr)
+library(patchwork)
+library(tidydr)
+library(ggplot2)
+library(cowplot)
+library(readxl)
+library(rio)
+library(R.utils)
+library(data.table)
+####Data input 1 and QC. RNA-seq smaples from GSE163005#### 
+getwd()
+setwd('C:/MS CSF/ms1')
+MS1 <- Read10X(data.dir = "C:/MS CSF/ms1")
+colnames(MS1) <- paste('MS1', colnames(MS1), sep = '_')
+dim(MS1)
+MS1[1:5,1:5]
+MS1 <- CreateSeuratObject(counts = MS1, project = "MS1", min.cells = 3, min.features = 200)
+PID<-read.csv("GSE163005_annotation_patients.csv",header = T) 
+MS1$PID<-PID$x
+MS1$PID[1:5]
+table(MS1$PID)
+table(MS1$orig.ident)
+MS1[["mt_percent"]] <- PercentageFeatureSet(MS1, pattern = "^MT-")
+HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+HB_m <- match(HB_genes, rownames(MS1@assays$RNA))
+HB_genes <- rownames(MS1@assays$RNA)[HB_m] 
+HB_genes <- HB_genes[!is.na(HB_genes)] 
+MS1[["HB_percent"]] <- PercentageFeatureSet(MS1, features=HB_genes)
+VlnPlot(MS1,layer = "counts",
+        features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+        pt.size = 0.01, 
+        ncol = 4) 
+####Data input 2 and QC. RNA-seq smaples from GSE138266#### 
+dir_name <- list.files('C:/MS CSF/ms2/') 
+dir_name
+str(dir_name)
+scRNAlist <- list()
+for(i in 1:length(dir_name)){
+  counts <- Read10X(data.dir = 
+                      paste("C:/MS CSF/ms2/", dir_name[i], sep = ""))
+  colnames(counts)<-paste(dir_name[i],colnames(counts),sep="-")
+  scRNAlist[[i]] <- CreateSeuratObject(counts, project =dir_name[i],min.cells = 3, min.features = 300)
+}
+scRNAlist
+for(i in 1:length(scRNAlist)){
+  sc <- scRNAlist[[i]]
+  sc[["mt_percent"]] <- PercentageFeatureSet(sc, pattern = "^MT-")
+  HB_genes <- c("HBA1","HBA2","HBB","HBD","HBE1","HBG1","HBG2","HBM","HBQ1","HBZ") 
+  HB_m <- match(HB_genes, rownames(sc@assays$RNA))
+  HB_genes <- rownames(sc@assays$RNA)[HB_m] 
+  HB_genes <- HB_genes[!is.na(HB_genes)] 
+  sc[["HB_percent"]] <- PercentageFeatureSet(sc, features=HB_genes)   
+  scRNAlist[[i]] <- sc
+  rm(sc)
+}
+scRNAlist <- lapply(X = scRNAlist, FUN = function(x){
+  x <- subset(x, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 4000 & 
+                mt_percent < 10 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)})
+violin_before <- list()
+for(i in 1:length(scRNAlist)){
+  violin_before[[i]] <- VlnPlot(scRNAlist[[i]],
+                                layer = "counts",
+                                features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+                                pt.size = 0.01, 
+                                ncol = 4) 
+}
+(violin_before[[11]]|violin_before[[12]])/(violin_before[[3]]|violin_before[[4]])/(violin_before[[5]]|violin_before[[6]])## 输出质控前的小提琴图，有多少样本就会输出多少张图片
+summary(violin_before)
+View(scRNAlist[[1]]@meta.data)
+MS2 <- merge(x=scRNAlist[[1]],y=scRNAlist[-1])
+MS2$PID<-MS2$orig.ident
+table(MS2$PID)
+VlnPlot(MS2,layer = "counts",
+        features = c("nFeature_RNA", "nCount_RNA", "mt_percent","HB_percent"), 
+        pt.size = 0.01, 
+        ncol = 4) 
+####Data merged and perform linear dimensional reduction####
+MS1 <- subset(MS1, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 4000 & 
+                mt_percent < 15 & 
+                HB_percent < 3 & 
+                nCount_RNA < quantile(nCount_RNA,0.97) & 
+                nCount_RNA > 500)
+MS2 <- subset(MS2, 
+              subset = nFeature_RNA > 300 & nFeature_RNA < 4000 & 
+                mt_percent < 15 & 
+                HB_percent < 3 & 
+                nCount_RNA < 9000 & 
+                nCount_RNA > 500)
+
+merged <-merge(MS1,MS2)
+merged <- NormalizeData(object = merged)
+merged <- FindVariableFeatures(object = merged)
+merged <- ScaleData(object = merged, vars.to.regress = c("mt_percent"))
+merged <- RunPCA(object = merged)
+merged <- FindNeighbors(object = merged, dims = 1:30)
+merged <- FindClusters(merged, resolution = seq(from = 0.1, to = 5.0, by = 0.1))
+merged <- RunUMAP(object = merged, dims = 1:30)
+merged <- RunTSNE(object = merged, dims = 1:30)
+DimPlot(object = merged, reduction = "umap")
+DimPlot(object = merged, reduction = "tsne")
+s.genes<-cc.genes$s.genes
+g2m.genes<-cc.genes$g2m.genes
+merged[["RNA"]] <- JoinLayers(merged[["RNA"]])
+merged <- CellCycleScoring(merged, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+merged$CC.Difference<-merged$S.Score-merged$G2M.Score
+DimPlot(merged, group.by = 'Phase')
+###rename sample ID#####
+table(merged$PID)
+merged$PID1<-factor(merged$PID, levels=c("COV1919",       "COV1923",       "COV1924",       "COV1930",       "COV1933",       "COV1943",       "COV1950",       "COV1954", 
+                                         "IIH10999",      "IIH32190",      "IIH41540",      "IIH45044",      "IIH47578",      "IIH53423",      "IIH68490",      "IIH85037", 
+                                         "IIH91012",       "MS19270",       "MS25719",       "MS49131",       "MS58637",       "MS71658",       "MS76177",       "MS77654", 
+                                         "MS79670",       "MS90896",    "MSCSF19270",    "MSCSF49131",    "MSCSF58637",    "MSCSF60249",    "MSCSF71658",    "MSCSF74594",
+                                         "MSPBMCs19270",  "MSPBMCs49131",  "MSPBMCs71658",  "MSPBMCs74594",   "PSTCSF45044",   "PSTCSF83775",   "PSTCSF95809",
+                                         "PSTPBMCs83775", "PSTPBMCs95809",   "PTCCSF32190",   "PTCCSF41540",   "PTCCSF85037", "PTCPBMCs32190", "PTCPBMCs41540", "PTCPBMCs85037",
+                                         "VE23642",       "VE48279",       "VE57538",       "VE61728",       "VE66730"),
+                    labels=c("COV19",       "COV19",       "COV19",       "COV19",       "COV19",       "COV19",       "COV19",       "COV19", 
+                             "IIH",      "IIH",      "IIH",      "IIH",      "IIH",      "IIH",      "IIH",      "IIH", 
+                             "IIH",       "MS1",       "MS1",       "MS1",       "MS1",       "MS1",       "MS1",       "MS1", 
+                             "MS1",       "MS1",    "MS2",    "MS2",    "MS2",    "MS2",    "MS2",    "MS2",
+                             "MS2PBMC",  "MS2PBMC",  "MS2PBMC",  "MS2PBMC",   "PST",   "PST",   "PST",
+                             "PSTPBMC", "PSTPBMC",   "PTC",   "PTC",   "PTC", "PTCPBMC", "PTCPBMC", "PTCPBMC",
+                             "VE",       "VE",       "VE",       "VE",       "VE"))
+Idents(merged)<-merged$PID1
+submerged1<-subset(merged,idents=c("COV19","IIH","PST","PTC"))
+submerged2<-subset(merged,idents=c("MS1","MS2"))
+submerged3<-subset(merged,idents=c("MS2PBMC","PSTPBMC","PTCPBMC"))
+submerged4<-subset(merged,idents=c("VE"))
+#DoubletFinder####
+sweep.res.list <- DoubletFinder::paramSweep(merged, PCs = 1:50, sct = FALSE)
+sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
+bcmvn <- find.pK(sweep.stats)
+mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
+nExp_poi <- round(0.075*ncol(merged))
+homotypic.prop <- modelHomotypic(merged$seurat_clusters)
+nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
+merged <- doubletFinder(merged, PCs = 1:30, pN = 0.25, pK = mpK, nExp = nExp_poi.adj, reuse.pANN = FALSE, sct = F)
+paste("DF.classifications_", "0.25_", mpK, "_", nExp_poi.adj, sep="")
+merged$DF.classifications_0.25_0.18_1423
+merged <- subset(merged, DF.classifications_0.25_0.18_1423 == "Singlet" )
+merged
+dim(merged)
+Idents(merged) <- "seurat_clusters"
+DimPlot(merged, pt.size = 1, label = TRUE, label.size = 5, reduction = "umap",shuffle = T)
+dim(merged)
+DimPlot(merged, pt.size = 1, label = TRUE, label.size = 5, reduction = "umap", group.by = "DF.classifications_0.25_0.18_1423",shuffle = T)
+####SCT+de-cell circulting genes+hormany integrity#### 
+Idents(merged)<-merged$PID1
+merged<-SCTransform(merged, vars.to.regress = c("CC.Difference","mt_percent"),do.correct.umi = TRUE, ncells = 5000, variable.features.n = 2000, verbose = FALSE)
+merged <- RunPCA(merged, verbose=F)
+DimPlot(merged, group.by = 'Phase')
+Layers(merged[["SCT"]])
+merged[["SCT"]] <- split(merged[["SCT"]], f = merged$PID1)
+merged <- IntegrateLayers(object = merged, 
+                          method = HarmonyIntegration, 
+                          orig.reduction = "pca", 
+                          new.reduction = "harmony",
+                          verbose = FALSE)
+merged[["SCT"]] <- JoinLayers(merged[["SCT"]])
+ElbowPlot(merged, ndims = 50)
+merged <- FindNeighbors(merged, dims = 1:30)
+merged <- FindClusters(merged, resolution = seq(from = 0.1, to = 5.0, by = 0.1))
+merged <- RunUMAP(object = merged, reduction = "harmony", dims = 1:30)
+merged <- RunTSNE(object = merged, reduction = "harmony", dims = 1:30)
+####total cell subsets annotation####
+Idents(merged)<-merged@meta.data$seurat_clusters
+DefaultAssay(merged) <- "SCT"
+merged.markers <- FindAllMarkers(merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+Idents(merged)<-merged$SCT_snn_res.2
+celltype1 <- c("T cells","T cells","T cells","T cells","T cells","T cells","T cells","T cells","T cells","T cells","T cells",
+               "T cells","T cells","T cells","T cells","T cells","T cells","B cells","NK/NKT cells","T cells","Myeloid cells",
+               "NK/NKT cells","T cells","T cells","T cells","Myeloid cells","T cells","Myeloid cells","T cells","T cells","T cells",
+               "T cells","Myeloid cells","T cells","T cells","T cells","Myeloid cells","T cells","T cells","Myeloid cells","T cells",
+               "T cells","T cells","B cells","T cells","T cells","B cells","NK/NKT cells","Myeloid cells","T cells","T cells",
+               "T cells","Myeloid cells","B cells","T cells","T cells","T cells","T cells","T cells")
+names(celltype1) <- levels(merged)
+merged <- RenameIdents(merged, celltype1)
+merged$celltype1<-merged@active.ident
+Idents(merged)<-merged$celltype1
+table(merged$celltype1)
+table(merged$celltype)
+DimPlot(object = merged, reduction = "umap",pt.size = 0.5,label=T,raster=T )
+table(merged$PID1)
+#### select CSF samples from MS and controls(PST, PTC)####
+Idents(merged)<-merged$PID1
+merged<-subset(merged,idents=c("MS1","MS2","PST","PTC"))
+merged$PID2<-factor(merged$PID1, levels=c("MS1","MS2","PST","PTC"), labels = c("MS","MS","Control","Control"))
+merged$PID2<-factor(merged$PID2, levels=c("Control","MS"))
+table(merged$PID1)
+Idents(merged)<-merged$celltype1
+DimPlot(object = merged, reduction = "umap",pt.size = 0.5,label=F,raster=T, split.by ="PID2" )
+####DimPlot, vlnplot and dotplot for marker genes####
+custom_colors <- c("#76b7b2", "#F9E0AB", "#ff9da7", "#e15759",  "#af7aa1", "#ff9f40","#1E90FF","#4e79a7","#644839", "#4e79a7","#9c755f")
+Idents(merged)<-merged$celltype1
+p1=DimPlot(merged, reduction = "umap", #group.by = "Celltype",
+           label = F, repel = F, shuffle = T ,pt.size = 0.8,label.size = 5) + 
+  theme_dr(xlength = 0.2, 
+           ylength = 0.2,
+           arrow = arrow(length = unit(0.1, "inches"),type = "closed")) +
+  theme(panel.grid = element_blank(),
+        axis.title = element_text(face = 3,hjust = 0.03)) +
+  scale_color_manual(values = alpha(custom_colors,0.3)) +  
+  scale_fill_manual(values = alpha(custom_colors,0.3))
+p1
+Idents(merged)<-merged$PID2
+plot1<- VlnPlot(merged,features = c("FPR1"), pt.size = 0.3, split.by = "PID2",cols=c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB", "lightgray",  "#ff9f40","#4e79a7","#af7aa1","#644839", "#4e79a7","#9c755f"))
+plot1
+plot2<-FeaturePlot(merged, pt.size =0.3, reduction = "umap", features = c("FPR1"),cols = c("gray", "red"))
+plot2
+cell.prop<-as.data.frame(prop.table(table(merged$celltype1, merged$PID2)))
+ggplot(cell.prop,aes(x=Var2,y=Freq,fill=Var1))+
+ geom_bar(stat="identity",position="fill")+
+  scale_fill_manual(values=c("#76b7b2", "#e15759", "#ff9da7", "#F9E0AB",  "#af7aa1", "#ff9f40","#1E90FF","#BDD7C5","#644839","#4e79a7","#9c755f","#ff9da7", "#59a14f","#4e79a7"))+
+  ggtitle("")+
+  theme_bw()+
+  theme(axis.ticks=element_blank(), panel.grid=element_blank())+
+  guides(fill=guide_legend(title=NULL))
+markers <- c("PTPRC", "CD3E",  "CD19", "NCAM1", "ITGAM",  "CD68", "S100A8","TMEM119", "P2RY12")
+Idents(merged)<-merged$celltype1
+DotPlot(merged, features = markers)
+DotPlot(merged, features = markers) + coord_flip() +  
+  theme_bw() +  
+  theme(panel.grid = element_blank(), axis.text.x = element_text(hjust = 1, vjust = 0.5)) +  
+  labs(x = NULL, y = NULL) + guides(size = guide_legend(order = 3)) +  
+  theme(axis.text.x = element_text(angle = 90)) +  
+  scale_color_gradientn(values = seq(0, 1, 0.2), colours = c('#330066', '#336699', '#66CC66', '#FFCC33')) 
+####select myeloid subset from MS and CON CSF samples ####
+submerged<-subset(merged, idents="Myeloid cells")
+submerged<-SCTransform(submerged, vars.to.regress = c("CC.Difference","mt_percent"))
+submerged <- RunPCA(submerged, verbose=F)
+submerged <- FindNeighbors(object = submerged, dims = 1:30)
+submerged <- FindClusters(object = submerged, resolution = seq(from = 0.1, to = 3.0, by = 0.1))
+submerged <- RunTSNE(submerged, dims = 1:30, reduction = "harmony")
+submerged <- RunUMAP(submerged, dims = 1:30, reduction = "harmony")
+DimPlot(object = submerged, reduction = "umap",pt.size = 0.7,label=F,raster=F )
+Idents(submerged)<-submerged$SCT_snn_res.1
+celltype1 <- c("Monocyte2",  "Monocyte1",  "Monocyte1",  "Monocyte3",  "DC2",  "Monocyte2",  "Monocyte1",  "DC2",  "Monocyte2",  "Monocyte3",  "Monocyte1",
+               "DC2", "DC1", "DC2", "Monocyte1", "Monocyte3")
+names(celltype1) <- levels(submerged)
+submerged <- RenameIdents(submerged, celltype1)
+submerged$celltype2<-submerged@active.ident
+Idents(submerged)<-submerged$celltype2
+table(submerged$celltype2)
+submerged$celltype2<-factor(submerged$celltype2, levels=c("Monocyte1",  "Monocyte2",  "Monocyte3", "DC1", "DC2"))
+DimPlot(object = submerged, reduction = "umap",pt.size = 0.7,label=T,raster=F )
+markers <- c("PTPRC", "TMEM119","ITGAM","CD68","S100A8","CTSL","CD44", "MRC1","SIGLEC1","LYVE1","CD163","F13A1","ITGAX","CD83","FPR1","HLA-DRA","HLA-DRB1")
+Idents(submerged)<-submerged$celltype2
+DotPlot(submerged, features = markers)
+    DotPlot(submerged, features = markers) + coord_flip() +  
+    theme_bw() +  
+    theme(panel.grid = element_blank(), axis.text.x = element_text(hjust = 1, vjust = 0.5)) +  
+    labs(x = NULL, y = NULL) + guides(size = guide_legend(order = 3)) +  
+    theme(axis.text.x = element_text(angle = 90)) + 
+    scale_color_gradientn(values = seq(0, 1, 0.2), colours = c('#330066', '#336699', '#66CC66', '#FFCC33')) 
+DefaultAssay(submerged) <- "RNA"
+plot1<- VlnPlot(submerged,features = c("FPR1"),split.by = "PID2")
+plot1
+Idents(submerged)<-submerged$PID1
+plot1<-DimPlot(object = submerged, reduction = "tsne",pt.size = 0.2,label=F,raster=F,split.by = "PID2")
+plot1
